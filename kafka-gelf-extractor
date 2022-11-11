@@ -1,0 +1,413 @@
+{
+  "extractors": [
+    {
+      "title": "Unbound",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 4,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{IP:Message_IP} %{NOTSPACE:Message_QH} %{WORD:Message_QT} %{WORD:Message_QC}"
+      },
+      "condition_type": "string",
+      "condition_value": "info"
+    },
+    {
+      "title": "OPNsense: IPv6 UDP",
+      "extractor_type": "regex",
+      "converters": [
+        {
+          "type": "csv",
+          "config": {
+            "column_header": "ule-number,sub-rule-number,anchor,tracker,interface,reason,action,direction,ip-version,class,flowlabel,hoplimit,protocol,protocolid,length,src_ip,dst_ip,src_port,dst_port,datalength",
+            "trim_leading_whitespace": true
+          }
+        }
+      ],
+      "order": 10,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "Filterlog",
+      "extractor_config": {
+        "regex_value": "^.*?(.*)$"
+      },
+      "condition_type": "regex",
+      "condition_value": "^.*,(in|out),6,.*,udp,.*$"
+    },
+    {
+      "title": "OPNsense: IPv4 UDP",
+      "extractor_type": "regex",
+      "converters": [
+        {
+          "type": "csv",
+          "config": {
+            "column_header": "rule-number,sub-rule-number,anchor,tracker,interface,reason,action,direction,ipversion,tos,ecn,ttl,id,offset,flags,protocolid,protocol,length,src_ip,dst_ip,src_port,dst_port,datalength",
+            "trim_leading_whitespace": true
+          }
+        }
+      ],
+      "order": 8,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "Filterlog",
+      "extractor_config": {
+        "regex_value": "^.*?(.*)$"
+      },
+      "condition_type": "regex",
+      "condition_value": "^.*,(in|out),4,.*,udp,.*$"
+    },
+    {
+      "title": "Unifi_AP",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 14,
+      "cursor_strategy": "copy",
+      "source_field": "full_message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{UNIFI_DEVICE}: (%{DATA:source})?(: )?%{SYSLOGPROG:UNWANTED}: %{GREEDYDATA:output}"
+      },
+      "condition_type": "string",
+      "condition_value": "UAP"
+    },
+    {
+      "title": "DNSmasq - Reply",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 3,
+      "cursor_strategy": "copy",
+      "source_field": "full_message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE} %{IP:Message_IP}/%{POSINT:ProcessID} %{WORD:QT} %{HOSTNAME:QH} is %{NOTSPACE:Answer}"
+      },
+      "condition_type": "regex",
+      "condition_value": "reply"
+    },
+    {
+      "title": "OPNsense: IPv4 TCP",
+      "extractor_type": "regex",
+      "converters": [
+        {
+          "type": "csv",
+          "config": {
+            "column_header": "rule-number,sub-rule-number,anchor,tracker,interface,reason,action,direction,ip-version,tos,ecn,ttl,id,offset,ip-flags,protocol-id,protocol-name,length,src_ip,dst_ip,src_port,dst_port,datalen,tcp-flags,sequence,f1,f2,f3,tcp-options",
+            "trim_leading_whitespace": true
+          }
+        }
+      ],
+      "order": 9,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "Filterlog",
+      "extractor_config": {
+        "regex_value": "^.*?(.*)$"
+      },
+      "condition_type": "regex",
+      "condition_value": "^.*,(in|out),4,.*,tcp,.*$"
+    },
+    {
+      "title": "DNSmasq",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 0,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE} %{IP}/%{POSINT:ProcessID} query\\[%{WORD:QT}\\] %{NOTSPACE:QH} from %{IP:Message_IP}"
+      },
+      "condition_type": "regex",
+      "condition_value": "query\\["
+    },
+    {
+      "title": "DHCPREQUEST",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 7,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{WORD:dhcpStat} for %{IP} from %{COMMONMAC:macAddr} %{NOTSPACE:hostName} via %{NOTSPACE:interface}"
+      },
+      "condition_type": "none",
+      "condition_value": ""
+    },
+    {
+      "title": "DNSmasq - Forwarded",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 1,
+      "cursor_strategy": "copy",
+      "source_field": "full_message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE} %{IP:Message_IP}/%{POSINT:ProcessID} %{WORD:QT} %{HOSTNAME:QH} to %{IP:UpstreamDNS}"
+      },
+      "condition_type": "regex",
+      "condition_value": "forwarded"
+    },
+    {
+      "title": "Wireless STA anomalies payload",
+      "extractor_type": "split_and_index",
+      "converters": [
+        {
+          "type": "tokenizer",
+          "config": {}
+        }
+      ],
+      "order": 17,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "payload",
+      "extractor_config": {
+        "index": 2,
+        "split_by": "():"
+      },
+      "condition_type": "string",
+      "condition_value": "wireless_agg_stats.log_sta_anomalies"
+    },
+    {
+      "title": "Unifi_SW",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 15,
+      "cursor_strategy": "copy",
+      "source_field": "full_message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{UNIFI_DEVICE}: (%{DATA:source})?(: )?%{SYSLOGPROG:UNWANTED}: %{GREEDYDATA:output}"
+      },
+      "condition_type": "string",
+      "condition_value": "US"
+    },
+    {
+      "title": "OPNsense: IPv6 TCP",
+      "extractor_type": "regex",
+      "converters": [
+        {
+          "type": "csv",
+          "config": {
+            "column_header": "rule-number,sub-rule-number,anchor,tracker,interface,reason,action,direction,ipversion,class,flowlabel,hoplimit,protocol,protocolid,length,src_ip,dst_ip,src_port,dst_port,datalength,tcp-flags,sequence,ack,window,urg,options",
+            "trim_leading_whitespace": true
+          }
+        }
+      ],
+      "order": 11,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "Filterlog",
+      "extractor_config": {
+        "regex_value": "^.*?(.*)$"
+      },
+      "condition_type": "regex",
+      "condition_value": "^.*,(in|out),6,.*,tcp,.*$"
+    },
+    {
+      "title": "DHCPACK",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 6,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{WORD:dhcpStat} on %{IP} to %{COMMONMAC:macAddr} %{NOTSPACE:hostName} via %{NOTSPACE:interface}"
+      },
+      "condition_type": "none",
+      "condition_value": ""
+    },
+    {
+      "title": "Hostapd DRIVER",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 22,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE:interface}: %{WORD:UNWANTED} %{COMMONMAC:apMac} %{WORD:UNWANTED}: Send %{WORD:security} addr=%{COMMONMAC:staMac} status_code=%{INT:statusCode}"
+      },
+      "condition_type": "string",
+      "condition_value": "DRIVER"
+    },
+    {
+      "title": "DNSmasq - Cached",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 2,
+      "cursor_strategy": "copy",
+      "source_field": "full_message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE} %{IP:Message_IP}/%{POSINT:ProcessID} %{WORD:QT} %{HOSTNAME:QH} is %{NOTSPACE:Answer}"
+      },
+      "condition_type": "regex",
+      "condition_value": "cached"
+    },
+    {
+      "title": "Unifi_U6",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 13,
+      "cursor_strategy": "copy",
+      "source_field": "full_message",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{UNIFI_DEVICE}: (%{DATA:source})?(: )?%{SYSLOGPROG:UNWANTED}: %{GREEDYDATA:output}"
+      },
+      "condition_type": "string",
+      "condition_value": "U6"
+    },
+    {
+      "title": "Hostapd IEEE 802.1X",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 23,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE:Interface}: %{WORD:UNWANTED} %{COMMONMAC:staMac} %{GREEDYDATA:standard}: %{WORD:securityStatus} - %{GREEDYDATA:securityInfo}"
+      },
+      "condition_type": "string",
+      "condition_value": "IEEE 802.1X"
+    },
+    {
+      "title": "Hostapd 802.11",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 21,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE:Interface}: %{WORD:UNWANTED} %{COMMONMAC:staMac} %{NOTSPACE:UNWANTED} %{GREEDYDATA:standard}: %{GREEDYDATA:staStatus}"
+      },
+      "condition_type": "string",
+      "condition_value": "IEEE 802.11"
+    },
+    {
+      "title": "STA-TRACKER payload extract",
+      "extractor_type": "json",
+      "converters": [],
+      "order": 19,
+      "cursor_strategy": "copy",
+      "source_field": "payload",
+      "target_field": "",
+      "extractor_config": {
+        "list_separator": ", ",
+        "kv_separator": "=",
+        "key_prefix": "",
+        "key_separator": "_",
+        "replace_key_whitespace": false,
+        "key_whitespace_replacement": "_"
+      },
+      "condition_type": "string",
+      "condition_value": "STA_ASSOC_TRACKER"
+    },
+    {
+      "title": "IEEE80211",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 20,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "(\\[%{SPACE:UNWANTED}%{BASE10NUM:uptime}\\]%{SPACE:UNWANTED})?%{NOTSPACE:802.11Msg}: %{GREEDYDATA:UNWANTED} %{COMMONMAC:staMac} %{GREEDYDATA:UNWANTED} \\[%{SPACE} %{WORD:tag} \\]"
+      },
+      "condition_type": "string",
+      "condition_value": "ieee80211"
+    },
+    {
+      "title": "Stahtd_dump_event payload",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 18,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{SYSLOGPROG:UNWANTED}: (%{DATA:UNWANTED})?(: )? %{GREEDYDATA:payload}"
+      },
+      "condition_type": "string",
+      "condition_value": "stahtd_dump_event"
+    },
+    {
+      "title": "Wevent",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 16,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{GREEDYDATA:UNWANTED}: %{WORD:wvent} %{WORD:UNWANTED}: %{COMMONMAC:staMac} %{GREEDYDATA:UNWANTED}",
+        "named_captures_only": false
+      },
+      "condition_type": "string",
+      "condition_value": "wevent"
+    },
+    {
+      "title": "Hostapd RADIUS",
+      "extractor_type": "grok",
+      "converters": [],
+      "order": 24,
+      "cursor_strategy": "copy",
+      "source_field": "output",
+      "target_field": "",
+      "extractor_config": {
+        "grok_pattern": "%{NOTSPACE:Interface}: %{WORD:UNWANTED} %{COMMONMAC:apMac} %{WORD:protocol}: %{GREEDYDATA:radiusMessage}"
+      },
+      "condition_type": "string",
+      "condition_value": "RADIUS"
+    },
+    {
+      "title": "AdGuard",
+      "extractor_type": "json",
+      "converters": [],
+      "order": 5,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "",
+      "extractor_config": {
+        "flatten": false,
+        "list_separator": ", ",
+        "kv_separator": ":",
+        "key_prefix": "",
+        "key_separator": "_",
+        "replace_key_whitespace": false,
+        "key_whitespace_replacement": "_"
+      },
+      "condition_type": "string",
+      "condition_value": "QH"
+    },
+    {
+      "title": "OPNsense: IPv4 ICMP",
+      "extractor_type": "regex",
+      "converters": [
+        {
+          "type": "csv",
+          "config": {
+            "column_header": "rule-number,sub-rule-number,anchor,tracker,interface,reason,action,direction,ipversion,tos,ecn,ttl,id,offset,flags,protocolid,protocol,length,src_ip,dst_ip,icmp_info",
+            "trim_leading_whitespace": true
+          }
+        }
+      ],
+      "order": 12,
+      "cursor_strategy": "copy",
+      "source_field": "message",
+      "target_field": "Filterlog",
+      "extractor_config": {
+        "regex_value": "^.*?(.*)$"
+      },
+      "condition_type": "regex",
+      "condition_value": "^.*,(in|out),4,.*,icmp,.*$"
+    }
+  ],
+  "version": "4.3.7"
+}
